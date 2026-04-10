@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ПП Рецепты — Вход</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          "primary": "#44664a", "on-primary": "#ffffff",
+          "primary-container": "#7a9e7e", "primary-fixed": "#c6ecc8",
+          "surface": "#fbf9f5", "surface-container-lowest": "#ffffff",
+          "surface-container-low": "#f5f3ef", "surface-container": "#efeeea",
+          "surface-variant": "#e4e2de", "outline-variant": "#c2c8bf",
+          "on-surface": "#1b1c1a", "on-surface-variant": "#424842",
+          "secondary-container": "#ebe1d7", "on-secondary-container": "#6a635c",
+          "tertiary-fixed": "#e8e2d9", "error": "#ba1a1a",
+        },
+        fontFamily: { headline: ["Noto Serif"], body: ["Inter"] },
+        borderRadius: { DEFAULT: "1rem", lg: "2rem", full: "9999px" }
+      }
+    }
+  }
+</script>
+<style>
+  body { font-family: 'Inter', sans-serif; }
+  .serif { font-family: 'Noto Serif', serif; }
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; vertical-align: middle; }
+</style>
+</head>
+<body class="bg-surface text-on-surface min-h-screen flex flex-col">
+
+<main class="flex-grow flex items-center justify-center px-6 py-12 relative overflow-hidden">
+  <!-- Background orbs -->
+  <div class="absolute top-[-10%] right-[-5%] w-96 h-96 bg-primary-fixed opacity-20 blur-[100px] rounded-full pointer-events-none"></div>
+  <div class="absolute bottom-[-10%] left-[-5%] w-72 h-72 bg-secondary-container opacity-30 blur-[80px] rounded-full pointer-events-none"></div>
+
+  <div class="w-full max-w-md relative z-10">
+    <!-- Branding -->
+    <div class="text-center mb-10">
+      <div class="inline-flex items-center justify-center gap-2 mb-4">
+        <span class="material-symbols-outlined text-primary text-3xl">energy_savings_leaf</span>
+        <span class="text-2xl serif italic text-primary">ПП Рецепты</span>
+      </div>
+      <h1 class="text-3xl md:text-4xl serif text-on-surface tracking-tight">Добро пожаловать</h1>
+      <p class="text-on-surface-variant mt-2 text-sm">Ваш путь к осознанному питанию</p>
+    </div>
+
+    <!-- Card -->
+    <div class="bg-surface-container-lowest border border-[#E0D9CF] rounded-[16px] overflow-hidden shadow-[0_40px_80px_-20px_rgba(76,70,63,0.08)]">
+
+      <!-- Tabs -->
+      <div class="flex border-b border-outline-variant/15">
+        <button id="tab-login" onclick="switchTab('login')"
+          class="flex-1 py-5 text-sm font-medium tracking-widest uppercase transition-colors border-b-2 border-primary text-on-surface">
+          Войти
+        </button>
+        <button id="tab-register" onclick="switchTab('register')"
+          class="flex-1 py-5 text-sm font-medium tracking-widest uppercase transition-colors border-b-2 border-transparent text-on-surface-variant opacity-60 hover:opacity-100">
+          Создать аккаунт
+        </button>
+      </div>
+
+      <div class="p-8 md:p-10">
+        <!-- Error -->
+        <div id="error" class="hidden mb-6 px-4 py-3 bg-red-50 text-error text-sm rounded-[10px] border border-red-100"></div>
+
+        <!-- Login form -->
+        <form id="login-form" onsubmit="handleLogin(event)" class="space-y-6">
+          <div class="space-y-5">
+            <div>
+              <label class="block text-[10px] font-medium tracking-widest uppercase text-on-surface-variant mb-1 ml-1">Электронная почта</label>
+              <input id="l-email" type="email" placeholder="example@mail.com" required
+                class="w-full bg-surface-variant/30 border-0 border-b border-outline-variant/40 focus:border-primary focus:ring-0 px-1 py-3 text-on-surface placeholder:text-on-surface-variant/40 transition-all"/>
+            </div>
+            <div>
+              <label class="block text-[10px] font-medium tracking-widest uppercase text-on-surface-variant mb-1 ml-1">Пароль</label>
+              <input id="l-password" type="password" placeholder="••••••••" required
+                class="w-full bg-surface-variant/30 border-0 border-b border-outline-variant/40 focus:border-primary focus:ring-0 px-1 py-3 text-on-surface placeholder:text-on-surface-variant/40 transition-all"/>
+            </div>
+          </div>
+          <button id="login-btn" type="submit"
+            class="w-full bg-primary-container text-white font-medium py-4 rounded-full hover:bg-primary transition-all active:scale-95 duration-150 shadow-lg shadow-primary-container/20">
+            Войти в профиль
+          </button>
+        </form>
+
+        <!-- Register form -->
+        <form id="register-form" onsubmit="handleRegister(event)" class="space-y-6 hidden">
+          <div class="space-y-5">
+            <div>
+              <label class="block text-[10px] font-medium tracking-widest uppercase text-on-surface-variant mb-1 ml-1">Имя</label>
+              <input id="r-name" type="text" placeholder="Как тебя зовут?" required
+                class="w-full bg-surface-variant/30 border-0 border-b border-outline-variant/40 focus:border-primary focus:ring-0 px-1 py-3 text-on-surface placeholder:text-on-surface-variant/40 transition-all"/>
+            </div>
+            <div>
+              <label class="block text-[10px] font-medium tracking-widest uppercase text-on-surface-variant mb-1 ml-1">Электронная почта</label>
+              <input id="r-email" type="email" placeholder="example@mail.com" required
+                class="w-full bg-surface-variant/30 border-0 border-b border-outline-variant/40 focus:border-primary focus:ring-0 px-1 py-3 text-on-surface placeholder:text-on-surface-variant/40 transition-all"/>
+            </div>
+            <div>
+              <label class="block text-[10px] font-medium tracking-widest uppercase text-on-surface-variant mb-1 ml-1">Пароль</label>
+              <input id="r-password" type="password" placeholder="Минимум 6 символов" required
+                class="w-full bg-surface-variant/30 border-0 border-b border-outline-variant/40 focus:border-primary focus:ring-0 px-1 py-3 text-on-surface placeholder:text-on-surface-variant/40 transition-all"/>
+            </div>
+          </div>
+          <button id="register-btn" type="submit"
+            class="w-full bg-primary text-white font-medium py-4 rounded-full hover:bg-primary-container transition-all active:scale-95 duration-150 shadow-lg shadow-primary/20">
+            Создать аккаунт
+          </button>
+        </form>
+      </div>
+    </div>
+
+    <p class="text-center mt-8 text-sm text-on-surface-variant">
+      <span id="switch-hint">Новый пользователь?</span>
+      <button onclick="switchTab('register')" id="switch-btn" class="text-primary font-semibold hover:underline underline-offset-4 ml-1">Присоединиться</button>
+    </p>
+  </div>
+</main>
+
+<footer class="py-6 text-center">
+  <p class="text-[10px] tracking-widest uppercase text-on-surface-variant/40">© 2025 ПП Рецепты — Искусство здорового вкуса</p>
+</footer>
+
+<script>
+  if (localStorage.getItem('token')) window.location.href = '/app.html';
+
+  function switchTab(tab) {
+    const isLogin = tab === 'login';
+    document.getElementById('login-form').classList.toggle('hidden', !isLogin);
+    document.getElementById('register-form').classList.toggle('hidden', isLogin);
+
+    const tabLogin = document.getElementById('tab-login');
+    const tabReg = document.getElementById('tab-register');
+    tabLogin.className = `flex-1 py-5 text-sm font-medium tracking-widest uppercase transition-colors border-b-2 ${isLogin ? 'border-primary text-on-surface' : 'border-transparent text-on-surface-variant opacity-60 hover:opacity-100'}`;
+    tabReg.className = `flex-1 py-5 text-sm font-medium tracking-widest uppercase transition-colors border-b-2 ${!isLogin ? 'border-primary text-on-surface' : 'border-transparent text-on-surface-variant opacity-60 hover:opacity-100'}`;
+
+    document.getElementById('switch-hint').textContent = isLogin ? 'Новый пользователь?' : 'Уже есть аккаунт?';
+    document.getElementById('switch-btn').textContent = isLogin ? 'Присоединиться' : 'Войти';
+    document.getElementById('switch-btn').onclick = () => switchTab(isLogin ? 'register' : 'login');
+    showError('');
+  }
+
+  function showError(msg) {
+    const el = document.getElementById('error');
+    el.textContent = msg;
+    el.classList.toggle('hidden', !msg);
+  }
+
+  async function handleLogin(e) {
+    e.preventDefault();
+    const btn = document.getElementById('login-btn');
+    btn.disabled = true; btn.textContent = 'Входим...';
+    showError('');
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: document.getElementById('l-email').value, password: document.getElementById('l-password').value })
+      });
+      const data = await res.json();
+      if (!res.ok) { showError(data.error); return; }
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      window.location.href = '/app.html';
+    } catch { showError('Ошибка соединения с сервером'); }
+    finally { btn.disabled = false; btn.textContent = 'Войти в профиль'; }
+  }
+
+  async function handleRegister(e) {
+    e.preventDefault();
+    const btn = document.getElementById('register-btn');
+    btn.disabled = true; btn.textContent = 'Создаём...';
+    showError('');
+    try {
+      const res = await fetch('/api/auth/register', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: document.getElementById('r-name').value, email: document.getElementById('r-email').value, password: document.getElementById('r-password').value })
+      });
+      const data = await res.json();
+      if (!res.ok) { showError(data.error); return; }
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      window.location.href = '/app.html';
+    } catch { showError('Ошибка соединения с сервером'); }
+    finally { btn.disabled = false; btn.textContent = 'Создать аккаунт'; }
+  }
+</script>
+</body>
+</html>

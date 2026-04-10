@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>ПП Рецепты</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          "primary": "#44664a", "on-primary": "#ffffff",
+          "primary-container": "#7a9e7e", "primary-fixed": "#c6ecc8",
+          "surface": "#fbf9f5", "surface-container-lowest": "#ffffff",
+          "surface-container-low": "#f5f3ef", "surface-container": "#efeeea",
+          "surface-container-high": "#eae8e4", "surface-container-highest": "#e4e2de",
+          "surface-variant": "#e4e2de", "outline-variant": "#c2c8bf",
+          "on-surface": "#1b1c1a", "on-surface-variant": "#424842",
+          "secondary-container": "#ebe1d7", "on-secondary-container": "#6a635c",
+          "on-secondary-fixed-variant": "#4c463f",
+          "tertiary-fixed": "#e8e2d9", "tertiary-fixed-dim": "#cbc6bd",
+          "on-tertiary-fixed": "#1d1b16", "error": "#ba1a1a",
+          "inverse-surface": "#30312e",
+        },
+        fontFamily: { headline: ["Noto Serif"], body: ["Inter"] },
+        borderRadius: { DEFAULT: "1rem", lg: "2rem", full: "9999px" }
+      }
+    }
+  }
+</script>
+<style>
+  body { font-family: 'Inter', sans-serif; background-color: #fbf9f5; color: #1b1c1a; }
+  .serif { font-family: 'Noto Serif', serif; }
+  .material-symbols-outlined {
+    font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    vertical-align: middle; line-height: 1;
+  }
+  .filled { font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  ::-webkit-scrollbar { display: none; }
+  * { -ms-overflow-style: none; scrollbar-width: none; }
+  @keyframes slideUp { from { transform: translateY(60px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .slide-up { animation: slideUp 0.35s cubic-bezier(0.32,0.72,0,1); }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .fade-in { animation: fadeIn 0.2s ease; }
+</style>
+</head>
+<body class="min-h-screen pb-28">
+
+<!-- TOP NAV -->
+<header class="fixed top-0 w-full z-50 bg-[#fbf9f5]">
+  <div class="flex justify-between items-center px-6 py-4 max-w-5xl mx-auto">
+    <span class="text-xl serif italic text-primary">ПП Рецепты</span>
+    <div class="flex items-center gap-3">
+      <div class="hidden md:flex items-center bg-surface-container-low px-4 py-2 rounded-full border border-outline-variant/15">
+        <span class="material-symbols-outlined text-on-surface-variant" style="font-size:18px">search</span>
+        <input id="search-desk" oninput="debounceSearch()" placeholder="Поиск рецептов..."
+          class="bg-transparent border-none focus:ring-0 text-sm ml-2 w-56 placeholder:text-on-surface-variant/50 outline-none"/>
+      </div>
+      <div class="relative">
+        <button id="avatar" onclick="toggleDropdown()"
+          class="w-10 h-10 rounded-full bg-primary-container text-white font-semibold text-sm flex items-center justify-center hover:bg-primary transition-colors">?</button>
+        <div id="dropdown" class="hidden absolute right-0 top-12 bg-surface-container-lowest border border-outline-variant/20 rounded-[16px] p-2 shadow-xl min-w-[200px] z-50">
+          <div class="px-3 py-2 text-sm font-semibold" id="dd-name"></div>
+          <div class="px-3 pb-2 text-xs text-on-surface-variant" id="dd-email"></div>
+          <div class="h-px bg-outline-variant/15 mx-1 mb-2"></div>
+          <button onclick="logout()" class="w-full text-left px-3 py-2 text-sm text-error hover:bg-red-50 rounded-xl transition-colors">
+            <span class="material-symbols-outlined text-sm mr-1">logout</span>Выйти
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- PAGES -->
+<main class="pt-20 max-w-5xl mx-auto px-6">
+
+  <!-- RECIPES -->
+  <div id="page-recipes" class="page">
+    <div class="md:hidden mt-4 mb-6">
+      <div class="flex items-center bg-surface-container-low px-4 py-3 rounded-full border border-outline-variant/15">
+        <span class="material-symbols-outlined text-primary">search</span>
+        <input id="search-mob" oninput="debounceSearch()" placeholder="Найти рецепт..."
+          class="bg-transparent border-none focus:ring-0 text-sm ml-3 w-full placeholder:text-on-surface-variant/50 outline-none"/>
+      </div>
+    </div>
+    <section class="mb-8 mt-4 md:mt-8">
+      <h1 class="serif text-4xl md:text-5xl font-bold tracking-tight mb-2">Здоровое питание</h1>
+      <p class="text-on-surface-variant/70 text-base max-w-md">Кураторские подборки для вашего осознанного рациона.</p>
+    </section>
+    <div class="flex gap-2 mb-10 overflow-x-auto pb-1 -mx-6 px-6">
+      <button onclick="setFilter(this,'')" class="chip whitespace-nowrap px-5 py-2 rounded-full bg-primary text-white font-medium text-sm">Все</button>
+      <button onclick="setFilter(this,'Завтрак')" class="chip whitespace-nowrap px-5 py-2 rounded-full bg-tertiary-fixed text-on-tertiary-fixed font-medium text-sm">🍳 Завтрак</button>
+      <button onclick="setFilter(this,'Обед')" class="chip whitespace-nowrap px-5 py-2 rounded-full bg-tertiary-fixed text-on-tertiary-fixed font-medium text-sm">🥗 Обед</button>
+      <button onclick="setFilter(this,'Ужин')" class="chip whitespace-nowrap px-5 py-2 rounded-full bg-tertiary-fixed text-on-tertiary-fixed font-medium text-sm">🍲 Ужин</button>
+      <button onclick="setFilter(this,'Перекус')" class="chip whitespace-nowrap px-5 py-2 rounded-full bg-tertiary-fixed text-on-tertiary-fixed font-medium text-sm">🍎 Перекус</button>
+      <button onclick="setFilter(this,'Десерт')" class="chip whitespace-nowrap px-5 py-2 rounded-full bg-tertiary-fixed text-on-tertiary-fixed font-medium text-sm">🍓 Десерт</button>
+    </div>
+    <div id="recipes-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+  </div>
+
+  <!-- FAVORITES -->
+  <div id="page-favorites" class="page hidden">
+    <section class="mb-8 mt-4 md:mt-8">
+      <h1 class="serif text-4xl md:text-5xl font-bold tracking-tight mb-2">Избранное</h1>
+      <p class="text-on-surface-variant/70 text-base">Ваши любимые рецепты в одном месте.</p>
+    </section>
+    <div class="grid grid-cols-3 gap-4 mb-10">
+      <div class="bg-surface-container-lowest border border-[#E0D9CF] rounded-[16px] p-5 text-center">
+        <div class="serif text-3xl font-bold text-primary" id="stat-total">—</div>
+        <div class="text-xs uppercase tracking-widest text-on-surface-variant mt-1">Рецептов</div>
+      </div>
+      <div class="bg-surface-container-lowest border border-[#E0D9CF] rounded-[16px] p-5 text-center">
+        <div class="serif text-3xl font-bold text-primary" id="stat-fav">—</div>
+        <div class="text-xs uppercase tracking-widest text-on-surface-variant mt-1">Избранных</div>
+      </div>
+      <div class="bg-surface-container-lowest border border-[#E0D9CF] rounded-[16px] p-5 text-center">
+        <div class="serif text-3xl font-bold text-primary" id="stat-cats">—</div>
+        <div class="text-xs uppercase tracking-widest text-on-surface-variant mt-1">Категорий</div>
+      </div>
+    </div>
+    <div id="fav-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+  </div>
+
+  <!-- ADD / EDIT -->
+  <div id="page-add" class="page hidden">
+    <header class="mb-10 mt-4 md:mt-8">
+      <h1 id="form-title" class="serif text-4xl md:text-5xl font-bold tracking-tight mb-2">Создать шедевр</h1>
+      <p class="text-on-surface-variant max-w-md">Запишите свой любимый полезный рецепт.</p>
+    </header>
+    <form onsubmit="saveRecipe(event)" class="space-y-10 max-w-2xl">
+
+      <!-- Emoji -->
+      <section>
+        <label class="block text-xs font-semibold tracking-widest uppercase text-on-secondary-fixed-variant mb-3">Иконка рецепта</label>
+        <div class="bg-surface-container-low p-5 rounded-[16px] border border-outline-variant/15">
+          <div class="flex flex-wrap gap-3" id="emoji-picker">
+            <button type="button" onclick="selEmoji(this)" class="emoji-opt w-11 h-11 flex items-center justify-center text-2xl bg-primary-container rounded-full shadow-sm selected">🥗</button>
+            <button type="button" onclick="selEmoji(this)" class="emoji-opt w-11 h-11 flex items-center justify-center text-2xl bg-surface-container-lowest rounded-full border border-outline-variant/10 hover:bg-primary-container/30 transition-all active:scale-95">🍳</button>
+            <button type="button" onclick="selEmoji(this)" class="emoji-opt w-11 h-11 flex items-center justify-center text-2xl bg-surface-container-lowest rounded-full border border-outline-variant/10 hover:bg-primary-container/30 transition-all active:scale-95">🥑</button>
+            <button type="button" onclick="selEmoji(this)" class="emoji-opt w-11 h-11 flex items-center justify-center text-2xl bg-surface-container-lowest rounded-full border border-outline-variant/10 hover:bg-primary-container/30 transition-all active:scale-95">🍲</button>
+            <button type="button" onclick="selEmoji(this)" class="emoji-opt w-11 h-11 flex items-center justify-center text-2xl bg-surface-container-lowest rounded-full border border-outline-variant/10 hover:bg-primary-container/30 transition-all active:scale-95">🥣</button>
+            <button type="button" onclick="selEmoji(this)" class="emoji-opt w-11 h-11 flex items-center justify-center text-2xl bg-surface-container-lowest rounded-full border border-outline-variant/10 hover:bg-primary-container/30 transition-all active:scale-95">🍜</button>
+            <button type="button" onclick="selEmoji(this)" class="emoji-opt w-11 h-11 flex items-center justify-center text-2xl bg-surface-container-lowest rounded-full border border-outline-variant/10 hover:bg-primary-container/30 transition-all active:scale-95">🍱</button>
+            <button type="button" onclick="selEmoji(this)" class="emoji-opt w-11 h-11 flex items-center justify-center text-2xl bg-surface-container-lowest rounded-full border border-outline-variant/10 hover:bg-primary-container/30 transition-all active:scale-95">🍓</button>
+            <button type="button" onclick="selEmoji(this)" class="emoji-opt w-11 h-11 flex items-center justify-center text-2xl bg-surface-container-lowest rounded-full border border-outline-variant/10 hover:bg-primary-container/30 transition-all active:scale-95">🥞</button>
+            <button type="button" onclick="selEmoji(this)" class="emoji-opt w-11 h-11 flex items-center justify-center text-2xl bg-surface-container-lowest rounded-full border border-outline-variant/10 hover:bg-primary-container/30 transition-all active:scale-95">🥙</button>
+            <button type="button" onclick="selEmoji(this)" class="emoji-opt w-11 h-11 flex items-center justify-center text-2xl bg-surface-container-lowest rounded-full border border-outline-variant/10 hover:bg-primary-container/30 transition-all active:scale-95">🫐</button>
+            <button type="button" onclick="selEmoji(this)" class="emoji-opt w-11 h-11 flex items-center justify-center text-2xl bg-surface-container-lowest rounded-full border border-outline-variant/10 hover:bg-primary-container/30 transition-all active:scale-95">🥝</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- Name & desc -->
+      <section class="space-y-7">
+        <div>
+          <label class="block text-xs font-semibold tracking-widest uppercase text-on-secondary-fixed-variant mb-2">Название рецепта *</label>
+          <input id="f-name" type="text" placeholder="Напр. Зелёный салат с авокадо"
+            class="w-full bg-transparent border-0 border-b border-outline-variant/40 focus:border-primary focus:ring-0 px-0 py-3 text-xl serif placeholder:text-on-surface-variant/40 transition-colors outline-none"/>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold tracking-widest uppercase text-on-secondary-fixed-variant mb-2">Описание</label>
+          <textarea id="f-desc" rows="2" placeholder="Расскажите коротко о вкусе и пользе..."
+            class="w-full bg-transparent border-0 border-b border-outline-variant/40 focus:border-primary focus:ring-0 px-0 py-3 placeholder:text-on-surface-variant/40 transition-colors resize-none outline-none"></textarea>
+        </div>
+      </section>
+
+      <!-- Details -->
+      <section class="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div>
+          <label class="block text-xs font-semibold tracking-widest uppercase text-on-secondary-fixed-variant mb-2">Категория</label>
+          <select id="f-category" class="w-full bg-surface-container-low border border-outline-variant/15 rounded-[12px] px-3 py-3 text-sm focus:ring-1 focus:ring-primary outline-none">
+            <option>Завтрак</option><option>Обед</option><option>Ужин</option>
+            <option>Перекус</option><option>Десерт</option><option>Другое</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold tracking-widest uppercase text-on-secondary-fixed-variant mb-2">🔥 Калории</label>
+          <input id="f-calories" type="number" placeholder="350"
+            class="w-full bg-surface-container-low border border-outline-variant/15 rounded-[12px] px-3 py-3 text-sm focus:ring-1 focus:ring-primary outline-none"/>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold tracking-widest uppercase text-on-secondary-fixed-variant mb-2">⏱ Время</label>
+          <input id="f-time" type="text" placeholder="30 мин"
+            class="w-full bg-surface-container-low border border-outline-variant/15 rounded-[12px] px-3 py-3 text-sm focus:ring-1 focus:ring-primary outline-none"/>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold tracking-widest uppercase text-on-secondary-fixed-variant mb-2">🍽 Порций</label>
+          <input id="f-servings" type="number" placeholder="2" min="1"
+            class="w-full bg-surface-container-low border border-outline-variant/15 rounded-[12px] px-3 py-3 text-sm focus:ring-1 focus:ring-primary outline-none"/>
+        </div>
+      </section>
+
+      <!-- Ingredients -->
+      <section class="space-y-4">
+        <div class="flex justify-between items-center border-b border-outline-variant/20 pb-3">
+          <h3 class="serif text-2xl font-bold">Ингредиенты</h3>
+          <button type="button" onclick="addIng()" class="text-primary flex items-center gap-1 font-semibold text-sm hover:opacity-70 transition-opacity">
+            <span class="material-symbols-outlined" style="font-size:20px">add_circle</span> Добавить
+          </button>
+        </div>
+        <div id="ing-list" class="space-y-3"></div>
+      </section>
+
+      <!-- Steps -->
+      <section class="space-y-4">
+        <div class="flex justify-between items-center border-b border-outline-variant/20 pb-3">
+          <h3 class="serif text-2xl font-bold">Инструкция</h3>
+          <button type="button" onclick="addStep()" class="text-primary flex items-center gap-1 font-semibold text-sm hover:opacity-70 transition-opacity">
+            <span class="material-symbols-outlined" style="font-size:20px">add_circle</span> Добавить шаг
+          </button>
+        </div>
+        <div id="steps-list" class="space-y-4"></div>
+      </section>
+
+      <input type="hidden" id="f-id"/>
+
+      <div class="pt-2 space-y-3 pb-10">
+        <button type="submit"
+          class="w-full bg-primary hover:bg-primary-container text-white font-bold py-5 rounded-full text-base shadow-lg shadow-primary/10 transition-all active:scale-[0.98]">
+          Сохранить рецепт
+        </button>
+        <button type="button" onclick="cancelForm()"
+          class="w-full py-4 border border-outline-variant/30 rounded-full text-on-surface-variant hover:bg-surface-container-low text-sm transition-all">
+          Отмена
+        </button>
+      </div>
+    </form>
+  </div>
+
+</main>
+
+<!-- BOTTOM NAV -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3 bg-[#fbf9f5]/80 backdrop-blur-xl rounded-t-[24px] shadow-[0_-4px_40px_-10px_rgba(76,70,63,0.08)]">
+  <button id="nav-recipes" onclick="showPage('recipes')"
+    class="flex flex-col items-center justify-center bg-primary-container text-white rounded-full px-6 py-2 transition-all">
+    <span class="material-symbols-outlined text-xl">restaurant_menu</span>
+    <span class="uppercase tracking-widest text-[10px] mt-0.5">Рецепты</span>
+  </button>
+  <button id="nav-favorites" onclick="showPage('favorites')"
+    class="flex flex-col items-center justify-center text-on-surface/50 hover:text-on-surface px-4 py-2 rounded-xl transition-all">
+    <span class="material-symbols-outlined text-xl">favorite</span>
+    <span class="uppercase tracking-widest text-[10px] mt-0.5">Избранное</span>
+  </button>
+  <button id="nav-add" onclick="showPage('add')"
+    class="flex flex-col items-center justify-center text-on-surface/50 hover:text-on-surface px-4 py-2 rounded-xl transition-all">
+    <span class="material-symbols-outlined text-xl">add_circle</span>
+    <span class="uppercase tracking-widest text-[10px] mt-0.5">Добавить</span>
+  </button>
+</nav>
+
+<!-- MODAL -->
+<div id="modal" class="hidden fixed inset-0 z-[100] flex items-end md:items-center justify-center">
+  <div class="absolute inset-0 bg-on-surface/20 backdrop-blur-sm" onclick="closeModal()"></div>
+  <article id="modal-body"
+    class="relative w-full max-w-2xl max-h-[90vh] bg-surface rounded-t-[28px] md:rounded-[24px] overflow-y-auto z-10 slide-up shadow-2xl">
+  </article>
+</div>
+
+<!-- TOAST -->
+<div id="toast"
+  class="fixed bottom-24 left-1/2 -translate-x-1/2 translate-y-4 opacity-0 bg-inverse-surface text-[#f2f0ec] px-5 py-3 rounded-full text-sm z-[200] transition-all duration-300 whitespace-nowrap pointer-events-none">
+</div>
+
+<script>
+const token = localStorage.getItem('token');
+const currentUser = JSON.parse(localStorage.getItem('user') || 'null');
+if (!token) window.location.href = '/';
+
+let currentFilter = '';
+let editId = null;
+let searchTimer = null;
+
+function init() {
+  if (currentUser) {
+    document.getElementById('avatar').textContent = currentUser.name.charAt(0).toUpperCase();
+    document.getElementById('dd-name').textContent = currentUser.name;
+    document.getElementById('dd-email').textContent = currentUser.email;
+  }
+  showPage('recipes');
+}
+
+function logout() {
+  localStorage.removeItem('token'); localStorage.removeItem('user');
+  window.location.href = '/';
+}
+
+function toggleDropdown() { document.getElementById('dropdown').classList.toggle('hidden'); }
+document.addEventListener('click', e => {
+  if (!e.target.closest('#avatar') && !e.target.closest('#dropdown'))
+    document.getElementById('dropdown').classList.add('hidden');
+});
+
+async function api(method, path, body) {
+  const res = await fetch(path, {
+    method,
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + token },
+    body: body ? JSON.stringify(body) : undefined
+  });
+  if (res.status === 401) { logout(); return null; }
+  return res.json();
+}
+
+// ── PAGES ─────────────────────────────────────────────
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.add('hidden'));
+  document.getElementById('page-' + name).classList.remove('hidden');
+  const active = 'flex flex-col items-center justify-center bg-primary-container text-white rounded-full px-6 py-2 transition-all';
+  const inactive = 'flex flex-col items-center justify-center text-on-surface/50 hover:text-on-surface px-4 py-2 rounded-xl transition-all';
+  ['recipes','favorites','add'].forEach(n => {
+    document.getElementById('nav-' + n).className = n === name ? active : inactive;
+  });
+  if (name === 'recipes') loadRecipes();
+  if (name === 'favorites') loadFavorites();
+  if (name === 'add' && !editId) resetForm();
+}
+
+// ── FILTER / SEARCH ───────────────────────────────────
+function setFilter(btn, cat) {
+  document.querySelectorAll('.chip').forEach(b => {
+    b.className = 'chip whitespace-nowrap px-5 py-2 rounded-full bg-tertiary-fixed text-on-tertiary-fixed font-medium text-sm transition-colors';
+  });
+  btn.className = 'chip whitespace-nowrap px-5 py-2 rounded-full bg-primary text-white font-medium text-sm';
+  currentFilter = cat; loadRecipes();
+}
+
+function debounceSearch() {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(loadRecipes, 350);
+}
+
+// ── LOAD ──────────────────────────────────────────────
+async function loadRecipes() {
+  const search = (document.getElementById('search-desk')?.value || document.getElementById('search-mob')?.value || '').trim();
+  let url = '/api/recipes?';
+  if (currentFilter) url += 'category=' + encodeURIComponent(currentFilter) + '&';
+  if (search) url += 'search=' + encodeURIComponent(search);
+  const grid = document.getElementById('recipes-grid');
+  grid.innerHTML = '<div class="col-span-3 py-16 text-center text-on-surface-variant text-sm opacity-60">Загружаем...</div>';
+  const recipes = await api('GET', url);
+  if (!recipes) return;
+  renderGrid(grid, recipes);
+}
+
+async function loadFavorites() {
+  const [favs, all] = await Promise.all([api('GET','/api/recipes?favorites=true'), api('GET','/api/recipes')]);
+  if (!favs || !all) return;
+  document.getElementById('stat-total').textContent = all.length;
+  document.getElementById('stat-fav').textContent = favs.length;
+  document.getElementById('stat-cats').textContent = [...new Set(all.map(r => r.category))].length;
+  renderGrid(document.getElementById('fav-grid'), favs, true);
+}
+
+function renderGrid(container, recipes, isFav = false) {
+  if (!recipes.length) {
+    container.innerHTML = `<div class="col-span-3 py-20 text-center">
+      <div class="text-5xl mb-4">${isFav ? '⭐' : '🌿'}</div>
+      <h3 class="serif text-2xl font-bold mb-2">${isFav ? 'Избранное пусто' : 'Рецептов пока нет'}</h3>
+      <p class="text-on-surface-variant text-sm mt-2">${isFav ? 'Нажми ♡ на рецепте' : 'Нажми «Добавить», чтобы создать первый рецепт'}</p>
+    </div>`;
+    return;
+  }
+  container.innerHTML = recipes.map(cardHTML).join('');
+}
+
+function cardHTML(r) {
+  return `
+  <div onclick="openRecipe(${r.id})" class="bg-[#EEE8DF] border border-[#E0D9CF] p-6 rounded-[16px] flex flex-col group cursor-pointer transition-all duration-200 hover:-translate-y-1 active:scale-[0.98]">
+    <div class="flex justify-between items-start mb-5">
+      <span class="text-5xl">${r.emoji || '🥗'}</span>
+      <button onclick="event.stopPropagation();toggleFav(${r.id})"
+        class="w-10 h-10 flex items-center justify-center rounded-full bg-white/60 hover:bg-white transition-colors">
+        <span class="material-symbols-outlined text-primary text-xl ${r.is_favorite ? 'filled' : ''}">favorite</span>
+      </button>
+    </div>
+    <h2 class="serif text-xl font-bold mb-4 leading-snug group-hover:text-primary transition-colors flex-grow">${esc(r.name)}</h2>
+    <div class="flex items-center gap-3 text-[#888078] text-xs font-medium uppercase tracking-widest mt-auto flex-wrap">
+      ${r.time ? `<span class="flex items-center gap-1"><span class="material-symbols-outlined" style="font-size:14px">schedule</span>${esc(r.time)}</span>` : ''}
+      ${r.calories ? `<span class="flex items-center gap-1"><span class="material-symbols-outlined" style="font-size:14px">local_fire_department</span>${r.calories} ккал</span>` : ''}
+      ${r.servings ? `<span class="flex items-center gap-1"><span class="material-symbols-outlined" style="font-size:14px">person</span>${r.servings} порц.</span>` : ''}
+    </div>
+    <div class="flex gap-2 mt-4 pt-4 border-t border-[#D8D0C5]" onclick="event.stopPropagation()">
+      <button onclick="editRecipe(${r.id})" class="flex-1 py-2 text-xs text-on-surface-variant hover:text-primary hover:bg-white/70 rounded-full transition-colors flex items-center justify-center gap-1">
+        <span class="material-symbols-outlined" style="font-size:14px">edit</span> Изменить
+      </button>
+      <button onclick="deleteRecipe(${r.id})" class="flex-1 py-2 text-xs text-on-surface-variant hover:text-error hover:bg-red-50 rounded-full transition-colors flex items-center justify-center gap-1">
+        <span class="material-symbols-outlined" style="font-size:14px">delete</span> Удалить
+      </button>
+    </div>
+  </div>`;
+}
+
+// ── MODAL ─────────────────────────────────────────────
+async function openRecipe(id) {
+  const r = await api('GET', '/api/recipes/' + id);
+  if (!r) return;
+  const ings = r.ingredients?.length ? `
+    <section class="mb-10">
+      <h3 class="text-xs font-medium tracking-[0.2em] uppercase text-on-secondary-container mb-5">Ингредиенты</h3>
+      <div class="flex flex-wrap gap-2">${r.ingredients.map(i =>
+        `<span class="px-4 py-2 bg-[#EEE8DF] text-sm rounded-full border border-outline-variant/10">${esc(i.name)}${i.amount ? ` <span class="text-primary font-medium">— ${esc(i.amount)}</span>` : ''}</span>`
+      ).join('')}</div>
+    </section>` : '';
+  const steps = r.steps?.length ? `
+    <section class="mb-6">
+      <h3 class="text-xs font-medium tracking-[0.2em] uppercase text-on-secondary-container mb-6">Способ приготовления</h3>
+      <div class="space-y-8">${r.steps.map((s,i) => `
+        <div class="flex gap-5 items-start">
+          <div class="flex-none w-10 h-10 rounded-full border border-primary/20 flex items-center justify-center text-primary serif italic font-bold">${i+1}</div>
+          <p class="text-base leading-relaxed pt-2">${esc(s)}</p>
+        </div>`).join('')}
+      </div>
+    </section>` : '';
+
+  document.getElementById('modal-body').innerHTML = `
+    <button onclick="closeModal()" class="absolute top-5 right-5 z-10 text-on-surface opacity-40 hover:opacity-100 transition-opacity">
+      <span class="material-symbols-outlined text-2xl">close</span>
+    </button>
+    <div class="p-8 md:p-10">
+      <div class="w-20 h-20 bg-surface-container-low rounded-full flex items-center justify-center text-5xl mb-6">${r.emoji || '🥗'}</div>
+      <h2 class="serif text-3xl md:text-4xl font-bold italic leading-tight mb-5">${esc(r.name)}</h2>
+      <div class="flex flex-wrap gap-5 mb-6">
+        ${r.time ? `<div class="flex items-center gap-2"><span class="material-symbols-outlined text-primary">schedule</span><span class="text-xs uppercase tracking-widest text-on-surface-variant">${esc(r.time)}</span></div>` : ''}
+        ${r.calories ? `<div class="flex items-center gap-2"><span class="material-symbols-outlined text-primary">local_fire_department</span><span class="text-xs uppercase tracking-widest text-on-surface-variant">${r.calories} ккал</span></div>` : ''}
+        ${r.servings ? `<div class="flex items-center gap-2"><span class="material-symbols-outlined text-primary">person</span><span class="text-xs uppercase tracking-widest text-on-surface-variant">${r.servings} порц.</span></div>` : ''}
+      </div>
+      ${r.description ? `<p class="text-on-surface-variant mb-8 leading-relaxed">${esc(r.description)}</p>` : ''}
+      <div class="w-full h-px bg-outline-variant/15 mb-8"></div>
+      ${ings}${steps}
+      <button onclick="toggleFav(${r.id}); closeModal()"
+        class="w-full mt-4 bg-primary hover:bg-primary-container text-white font-bold py-5 rounded-full transition-all active:scale-[0.98] flex items-center justify-center gap-3">
+        <span class="material-symbols-outlined ${r.is_favorite ? 'filled' : ''}">favorite</span>
+        ${r.is_favorite ? 'УБРАТЬ ИЗ ИЗБРАННОГО' : 'СОХРАНИТЬ В ИЗБРАННОЕ'}
+      </button>
+    </div>`;
+  document.getElementById('modal').classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.add('hidden');
+  document.body.style.overflow = '';
+}
+
+// ── ACTIONS ───────────────────────────────────────────
+async function toggleFav(id) {
+  const data = await api('PATCH', `/api/recipes/${id}/favorite`);
+  if (!data) return;
+  showToast(data.is_favorite ? '⭐ Добавлено в избранное' : 'Убрано из избранного');
+  if (!document.getElementById('page-recipes').classList.contains('hidden')) loadRecipes();
+  if (!document.getElementById('page-favorites').classList.contains('hidden')) loadFavorites();
+}
+
+async function deleteRecipe(id) {
+  if (!confirm('Удалить рецепт?')) return;
+  await api('DELETE', '/api/recipes/' + id);
+  showToast('Рецепт удалён');
+  loadRecipes();
+  if (!document.getElementById('page-favorites').classList.contains('hidden')) loadFavorites();
+}
+
+async function editRecipe(id) {
+  const r = await api('GET', '/api/recipes/' + id);
+  if (!r) return;
+  editId = id;
+  showPage('add');
+  document.getElementById('form-title').textContent = 'Редактировать рецепт';
+  document.getElementById('f-id').value = id;
+  document.getElementById('f-name').value = r.name || '';
+  document.getElementById('f-category').value = r.category || 'Завтрак';
+  document.getElementById('f-calories').value = r.calories || '';
+  document.getElementById('f-time').value = r.time || '';
+  document.getElementById('f-servings').value = r.servings || '';
+  document.getElementById('f-desc').value = r.description || '';
+  document.querySelectorAll('.emoji-opt').forEach(e => {
+    const sel = e.textContent.trim() === (r.emoji || '').trim();
+    e.className = sel
+      ? 'emoji-opt w-11 h-11 flex items-center justify-center text-2xl bg-primary-container rounded-full shadow-sm selected'
+      : 'emoji-opt w-11 h-11 flex items-center justify-center text-2xl bg-surface-container-lowest rounded-full border border-outline-variant/10 hover:bg-primary-container/30 transition-all active:scale-95';
+  });
+  document.getElementById('ing-list').innerHTML = '';
+  (r.ingredients || []).forEach(i => addIng(i.name, i.amount));
+  document.getElementById('steps-list').innerHTML = '';
+  (r.steps || []).forEach(s => addStep(s));
+}
+
+async function saveRecipe(e) {
+  e.preventDefault();
+  const name = document.getElementById('f-name').value.trim();
+  if (!name) { showToast('⚠️ Введи название рецепта'); return; }
+  const ingredients = [...document.querySelectorAll('.ing-row')].map(row => ({
+    name: row.querySelector('.ing-name').value.trim(),
+    amount: row.querySelector('.ing-amount').value.trim()
+  })).filter(i => i.name);
+  const steps = [...document.querySelectorAll('.step-ta')].map(t => t.value.trim()).filter(Boolean);
+  const body = {
+    emoji: document.querySelector('.emoji-opt.selected')?.textContent.trim() || '🥗',
+    name, category: document.getElementById('f-category').value,
+    calories: document.getElementById('f-calories').value || null,
+    time: document.getElementById('f-time').value.trim() || null,
+    servings: document.getElementById('f-servings').value || null,
+    description: document.getElementById('f-desc').value.trim() || null,
+    ingredients, steps
+  };
+  if (editId) {
+    await api('PUT', '/api/recipes/' + editId, body);
+    showToast('✅ Рецепт обновлён');
+  } else {
+    await api('POST', '/api/recipes', body);
+    showToast('✅ Рецепт сохранён!');
+  }
+  editId = null;
+  showPage('recipes');
+}
+
+function cancelForm() { editId = null; showPage('recipes'); }
+
+function resetForm() {
+  document.getElementById('form-title').textContent = 'Создать шедевр';
+  ['f-id','f-name','f-calories','f-time','f-servings','f-desc'].forEach(id => {
+    const el = document.getElementById(id); if (el) el.value = '';
+  });
+  document.getElementById('f-category').value = 'Завтрак';
+  document.querySelectorAll('.emoji-opt').forEach((e, i) => {
+    e.className = i === 0
+      ? 'emoji-opt w-11 h-11 flex items-center justify-center text-2xl bg-primary-container rounded-full shadow-sm selected'
+      : 'emoji-opt w-11 h-11 flex items-center justify-center text-2xl bg-surface-container-lowest rounded-full border border-outline-variant/10 hover:bg-primary-container/30 transition-all active:scale-95';
+  });
+  document.getElementById('ing-list').innerHTML = '';
+  document.getElementById('steps-list').innerHTML = '';
+  addIng(); addIng(); addStep(); addStep();
+}
+
+function selEmoji(el) {
+  document.querySelectorAll('.emoji-opt').forEach(e => {
+    e.className = 'emoji-opt w-11 h-11 flex items-center justify-center text-2xl bg-surface-container-lowest rounded-full border border-outline-variant/10 hover:bg-primary-container/30 transition-all active:scale-95';
+  });
+  el.className = 'emoji-opt w-11 h-11 flex items-center justify-center text-2xl bg-primary-container rounded-full shadow-sm selected';
+}
+
+function addIng(name = '', amount = '') {
+  const div = document.createElement('div');
+  div.className = 'ing-row flex gap-3 items-center fade-in';
+  div.innerHTML = `
+    <input type="text" placeholder="Ингредиент" value="${esc(name)}"
+      class="ing-name flex-grow bg-surface-container-low border border-outline-variant/15 rounded-[12px] px-4 py-3 text-sm focus:ring-1 focus:ring-primary outline-none"/>
+    <input type="text" placeholder="Кол-во" value="${esc(amount)}"
+      class="ing-amount w-28 bg-surface-container-low border border-outline-variant/15 rounded-[12px] px-4 py-3 text-sm focus:ring-1 focus:ring-primary outline-none"/>
+    <button type="button" onclick="this.parentElement.remove()" class="text-error/40 hover:text-error transition-colors flex-none">
+      <span class="material-symbols-outlined">delete</span>
+    </button>`;
+  document.getElementById('ing-list').appendChild(div);
+}
+
+function addStep(text = '') {
+  const list = document.getElementById('steps-list');
+  const num = list.children.length + 1;
+  const div = document.createElement('div');
+  div.className = 'flex gap-5 items-start fade-in';
+  div.innerHTML = `
+    <div class="flex-none w-10 h-10 rounded-full bg-secondary-container flex items-center justify-center font-bold text-on-secondary-container serif italic step-num">${num}</div>
+    <textarea class="step-ta flex-grow bg-surface-container-low border border-outline-variant/15 rounded-[12px] px-4 py-3 text-sm focus:ring-1 focus:ring-primary resize-none outline-none" rows="2" placeholder="Опишите шаг...">${esc(text)}</textarea>
+    <button type="button" onclick="this.parentElement.remove(); updateStepNums()" class="text-error/40 hover:text-error transition-colors mt-2">
+      <span class="material-symbols-outlined">delete</span>
+    </button>`;
+  list.appendChild(div);
+}
+
+function updateStepNums() {
+  document.querySelectorAll('.step-num').forEach((el, i) => el.textContent = i + 1);
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.remove('opacity-0','translate-y-4');
+  t.classList.add('opacity-100','translate-y-0');
+  setTimeout(() => { t.classList.add('opacity-0','translate-y-4'); t.classList.remove('opacity-100','translate-y-0'); }, 2500);
+}
+
+function esc(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+init();
+</script>
+</body>
+</html>

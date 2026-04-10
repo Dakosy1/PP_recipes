@@ -1,0 +1,989 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Мои ПП Рецепты</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Inter:wght@300;400;500&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --pink: #f7a8c4;
+    --pink-light: #fde8f0;
+    --pink-dark: #e8789e;
+    --green: #a8d8a8;
+    --green-light: #e8f5e8;
+    --text: #3d2b2b;
+    --text-light: #9b7b7b;
+    --white: #fff;
+    --bg: #fdf6f9;
+    --card: #ffffff;
+    --shadow: 0 4px 20px rgba(247,168,196,0.2);
+  }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* HEADER */
+  header {
+    background: linear-gradient(135deg, #f7a8c4 0%, #f9c5d1 50%, #fcd5ce 100%);
+    padding: 32px 24px 28px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  header::before {
+    content: '';
+    position: absolute;
+    width: 200px; height: 200px;
+    background: rgba(255,255,255,0.15);
+    border-radius: 50%;
+    top: -60px; right: -40px;
+  }
+  header::after {
+    content: '';
+    position: absolute;
+    width: 120px; height: 120px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+    bottom: -30px; left: 20px;
+  }
+  header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    color: white;
+    text-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    position: relative;
+    z-index: 1;
+  }
+  header p {
+    color: rgba(255,255,255,0.85);
+    font-size: 0.85rem;
+    margin-top: 6px;
+    font-weight: 300;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* NAV */
+  nav {
+    display: flex;
+    background: white;
+    box-shadow: 0 2px 12px rgba(247,168,196,0.15);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  nav button {
+    flex: 1;
+    padding: 14px;
+    border: none;
+    background: none;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--text-light);
+    cursor: pointer;
+    transition: all 0.2s;
+    border-bottom: 3px solid transparent;
+  }
+  nav button.active {
+    color: var(--pink-dark);
+    border-bottom-color: var(--pink-dark);
+    background: var(--pink-light);
+  }
+  nav button:hover:not(.active) {
+    background: var(--bg);
+    color: var(--text);
+  }
+
+  /* MAIN */
+  main { padding: 20px 16px; max-width: 680px; margin: 0 auto; }
+
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* SEARCH */
+  .search-bar {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+  .search-bar input {
+    flex: 1;
+    padding: 12px 16px;
+    border: 2px solid var(--pink-light);
+    border-radius: 50px;
+    font-size: 0.9rem;
+    font-family: 'Inter', sans-serif;
+    background: white;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .search-bar input:focus { border-color: var(--pink); }
+
+  /* FILTERS */
+  .filters {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+  .filter-btn {
+    padding: 6px 16px;
+    border-radius: 50px;
+    border: 2px solid var(--pink-light);
+    background: white;
+    font-size: 0.8rem;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+    color: var(--text-light);
+  }
+  .filter-btn.active {
+    background: var(--pink);
+    border-color: var(--pink);
+    color: white;
+    font-weight: 500;
+  }
+
+  /* RECIPE CARDS */
+  .recipes-grid { display: flex; flex-direction: column; gap: 16px; }
+
+  .recipe-card {
+    background: var(--card);
+    border-radius: 20px;
+    padding: 20px;
+    box-shadow: var(--shadow);
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: 1px solid rgba(247,168,196,0.15);
+  }
+  .recipe-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 30px rgba(247,168,196,0.3);
+  }
+  .card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .card-emoji { font-size: 2.2rem; }
+  .card-info { flex: 1; }
+  .card-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .card-category {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 50px;
+    font-size: 0.72rem;
+    font-weight: 500;
+  }
+  .cat-завтрак { background: #fff3cd; color: #856404; }
+  .cat-обед { background: #d1ecf1; color: #0c5460; }
+  .cat-ужин { background: #d4edda; color: #155724; }
+  .cat-перекус { background: #fde8f0; color: #c2185b; }
+  .cat-десерт { background: #e8daef; color: #6c3483; }
+  .cat-другое { background: #f8f9fa; color: #495057; }
+
+  .card-meta {
+    display: flex;
+    gap: 16px;
+    margin-top: 12px;
+    font-size: 0.78rem;
+    color: var(--text-light);
+  }
+  .card-meta span { display: flex; align-items: center; gap: 4px; }
+
+  .card-desc {
+    margin-top: 10px;
+    font-size: 0.83rem;
+    color: var(--text-light);
+    line-height: 1.5;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .card-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .btn-icon {
+    width: 34px; height: 34px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    font-size: 1rem;
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.2s;
+  }
+  .btn-edit { background: var(--pink-light); }
+  .btn-edit:hover { background: var(--pink); }
+  .btn-delete { background: #ffeaea; }
+  .btn-delete:hover { background: #ffbaba; }
+  .btn-fav { background: var(--green-light); }
+  .btn-fav:hover { background: var(--green); }
+  .btn-fav.active { background: var(--green); }
+
+  /* EMPTY STATE */
+  .empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-light);
+  }
+  .empty-state .big-emoji { font-size: 4rem; margin-bottom: 16px; }
+  .empty-state h3 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.3rem;
+    margin-bottom: 8px;
+    color: var(--text);
+  }
+  .empty-state p { font-size: 0.9rem; line-height: 1.6; }
+
+  /* ADD FORM */
+  .form-card {
+    background: white;
+    border-radius: 24px;
+    padding: 28px 24px;
+    box-shadow: var(--shadow);
+  }
+  .form-card h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.5rem;
+    margin-bottom: 24px;
+    color: var(--text);
+  }
+  .form-group { margin-bottom: 18px; }
+  .form-group label {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 500;
+    color: var(--text-light);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .form-group input,
+  .form-group select,
+  .form-group textarea {
+    width: 100%;
+    padding: 12px 16px;
+    border: 2px solid var(--pink-light);
+    border-radius: 14px;
+    font-size: 0.92rem;
+    font-family: 'Inter', sans-serif;
+    color: var(--text);
+    background: white;
+    outline: none;
+    transition: border-color 0.2s;
+    resize: vertical;
+  }
+  .form-group input:focus,
+  .form-group select:focus,
+  .form-group textarea:focus { border-color: var(--pink); }
+
+  .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+
+  .emoji-picker {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .emoji-option {
+    font-size: 1.6rem;
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 10px;
+    border: 2px solid transparent;
+    transition: all 0.2s;
+    background: var(--bg);
+  }
+  .emoji-option.selected {
+    border-color: var(--pink);
+    background: var(--pink-light);
+  }
+  .emoji-option:hover { background: var(--pink-light); }
+
+  /* INGREDIENTS */
+  .ingredients-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
+  .ingredient-row {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+  .ingredient-row input { flex: 1; }
+  .ingredient-row .amount-input { max-width: 120px; }
+  .btn-remove {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    border: none;
+    background: #ffeaea;
+    cursor: pointer;
+    font-size: 1rem;
+    flex-shrink: 0;
+    transition: background 0.2s;
+  }
+  .btn-remove:hover { background: #ffbaba; }
+
+  .btn-add-ingredient {
+    padding: 8px 16px;
+    border-radius: 50px;
+    border: 2px dashed var(--pink);
+    background: none;
+    color: var(--pink-dark);
+    font-size: 0.82rem;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-weight: 500;
+  }
+  .btn-add-ingredient:hover { background: var(--pink-light); }
+
+  /* STEPS */
+  .steps-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px; }
+  .step-row {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+  }
+  .step-number {
+    width: 28px; height: 28px;
+    background: var(--pink);
+    color: white;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.78rem;
+    font-weight: 600;
+    flex-shrink: 0;
+    margin-top: 10px;
+  }
+  .step-row textarea { min-height: 60px; }
+
+  /* SUBMIT BTN */
+  .btn-submit {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, var(--pink) 0%, var(--pink-dark) 100%);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    font-size: 1rem;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 15px rgba(247,168,196,0.5);
+    margin-top: 8px;
+  }
+  .btn-submit:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(247,168,196,0.6);
+  }
+  .btn-cancel {
+    width: 100%;
+    padding: 14px;
+    background: none;
+    color: var(--text-light);
+    border: 2px solid var(--pink-light);
+    border-radius: 50px;
+    font-size: 0.9rem;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: all 0.2s;
+    margin-top: 10px;
+  }
+  .btn-cancel:hover { background: var(--pink-light); color: var(--text); }
+
+  /* MODAL */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    z-index: 1000;
+    align-items: flex-end;
+    justify-content: center;
+  }
+  .modal-overlay.open { display: flex; }
+  .modal {
+    background: white;
+    border-radius: 28px 28px 0 0;
+    padding: 28px 24px 40px;
+    width: 100%;
+    max-width: 680px;
+    max-height: 90vh;
+    overflow-y: auto;
+    animation: slideUp 0.3s ease;
+  }
+  @keyframes slideUp {
+    from { transform: translateY(100%); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  .modal-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .modal-emoji { font-size: 3rem; }
+  .modal-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    font-weight: 600;
+  }
+  .modal-close {
+    margin-left: auto;
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    border: none;
+    background: var(--bg);
+    font-size: 1.1rem;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .modal-section { margin-bottom: 24px; }
+  .modal-section h3 {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-light);
+    margin-bottom: 12px;
+    font-weight: 600;
+  }
+  .modal-meta {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    padding: 16px;
+    background: var(--bg);
+    border-radius: 16px;
+    margin-bottom: 20px;
+  }
+  .meta-item { display: flex; align-items: center; gap: 6px; font-size: 0.85rem; }
+
+  .ingredient-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px;
+    background: var(--pink-light);
+    border-radius: 50px;
+    font-size: 0.82rem;
+    margin: 4px;
+  }
+  .ingredient-chip .amount { color: var(--pink-dark); font-weight: 500; }
+
+  .step-item {
+    display: flex;
+    gap: 12px;
+    align-items: flex-start;
+    margin-bottom: 14px;
+  }
+  .step-item .num {
+    width: 30px; height: 30px;
+    background: linear-gradient(135deg, var(--pink), var(--pink-dark));
+    color: white;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.8rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .step-item p { font-size: 0.9rem; line-height: 1.6; padding-top: 4px; }
+
+  /* FAV PAGE */
+  .stats-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+  .stat-card {
+    background: white;
+    border-radius: 18px;
+    padding: 18px 14px;
+    text-align: center;
+    box-shadow: var(--shadow);
+  }
+  .stat-card .num { font-family: 'Playfair Display', serif; font-size: 2rem; color: var(--pink-dark); }
+  .stat-card .label { font-size: 0.75rem; color: var(--text-light); margin-top: 4px; }
+
+  /* FAB */
+  .fab {
+    position: fixed;
+    bottom: 28px;
+    right: 20px;
+    width: 58px; height: 58px;
+    background: linear-gradient(135deg, var(--pink), var(--pink-dark));
+    border-radius: 50%;
+    border: none;
+    font-size: 1.6rem;
+    color: white;
+    cursor: pointer;
+    box-shadow: 0 6px 20px rgba(247,168,196,0.6);
+    transition: all 0.2s;
+    z-index: 200;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .fab:hover { transform: scale(1.1); }
+
+  .toast {
+    position: fixed;
+    bottom: 100px;
+    left: 50%;
+    transform: translateX(-50%) translateY(20px);
+    background: #333;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    opacity: 0;
+    transition: all 0.3s;
+    z-index: 9999;
+    white-space: nowrap;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  @media (max-width: 400px) {
+    header h1 { font-size: 1.6rem; }
+    .form-row { grid-template-columns: 1fr; }
+    .stats-row { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🌿 Мои ПП Рецепты</h1>
+  <p>Вкусно, полезно и всё под рукой</p>
+</header>
+
+<nav>
+  <button class="active" onclick="showPage('recipes')">📖 Рецепты</button>
+  <button onclick="showPage('favorites')">⭐ Избранное</button>
+  <button onclick="showPage('add')">➕ Добавить</button>
+</nav>
+
+<main>
+  <!-- RECIPES PAGE -->
+  <div class="page active" id="page-recipes">
+    <div style="height:16px"></div>
+    <div class="search-bar">
+      <input type="text" id="search-input" placeholder="🔍 Поиск рецептов..." oninput="renderRecipes()">
+    </div>
+    <div class="filters" id="category-filters">
+      <button class="filter-btn active" onclick="setFilter(this, '')" data-cat="">Все</button>
+      <button class="filter-btn" onclick="setFilter(this, 'Завтрак')" data-cat="Завтрак">🍳 Завтрак</button>
+      <button class="filter-btn" onclick="setFilter(this, 'Обед')" data-cat="Обед">🥗 Обед</button>
+      <button class="filter-btn" onclick="setFilter(this, 'Ужин')" data-cat="Ужин">🍲 Ужин</button>
+      <button class="filter-btn" onclick="setFilter(this, 'Перекус')" data-cat="Перекус">🍎 Перекус</button>
+      <button class="filter-btn" onclick="setFilter(this, 'Десерт')" data-cat="Десерт">🍓 Десерт</button>
+    </div>
+    <div class="recipes-grid" id="recipes-grid"></div>
+  </div>
+
+  <!-- FAVORITES PAGE -->
+  <div class="page" id="page-favorites">
+    <div style="height:16px"></div>
+    <div class="stats-row" id="stats-row"></div>
+    <div class="recipes-grid" id="fav-grid"></div>
+  </div>
+
+  <!-- ADD/EDIT PAGE -->
+  <div class="page" id="page-add">
+    <div style="height:16px"></div>
+    <div class="form-card">
+      <h2 id="form-title">✨ Новый рецепт</h2>
+
+      <div class="form-group">
+        <label>Иконка блюда</label>
+        <div class="emoji-picker" id="emoji-picker">
+          <span class="emoji-option selected" onclick="selectEmoji(this)">🥗</span>
+          <span class="emoji-option" onclick="selectEmoji(this)">🍳</span>
+          <span class="emoji-option" onclick="selectEmoji(this)">🥑</span>
+          <span class="emoji-option" onclick="selectEmoji(this)">🍲</span>
+          <span class="emoji-option" onclick="selectEmoji(this)">🫕</span>
+          <span class="emoji-option" onclick="selectEmoji(this)">🥘</span>
+          <span class="emoji-option" onclick="selectEmoji(this)">🍓</span>
+          <span class="emoji-option" onclick="selectEmoji(this)">🥞</span>
+          <span class="emoji-option" onclick="selectEmoji(this)">🍜</span>
+          <span class="emoji-option" onclick="selectEmoji(this)">🍱</span>
+          <span class="emoji-option" onclick="selectEmoji(this)">🥙</span>
+          <span class="emoji-option" onclick="selectEmoji(this)">🍉</span>
+          <span class="emoji-option" onclick="selectEmoji(this)">🫐</span>
+          <span class="emoji-option" onclick="selectEmoji(this)">🥝</span>
+          <span class="emoji-option" onclick="selectEmoji(this)">🥣</span>
+          <span class="emoji-option" onclick="selectEmoji(this)">🌮</span>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Название блюда *</label>
+        <input type="text" id="f-name" placeholder="Например: Овсянка с ягодами">
+      </div>
+
+      <div class="form-row">
+        <div class="form-group" style="margin-bottom:0">
+          <label>Категория</label>
+          <select id="f-category">
+            <option>Завтрак</option>
+            <option>Обед</option>
+            <option>Ужин</option>
+            <option>Перекус</option>
+            <option>Десерт</option>
+            <option>Другое</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label>Калории (на порцию)</label>
+          <input type="number" id="f-calories" placeholder="350">
+        </div>
+      </div>
+
+      <div class="form-row" style="margin-top:18px">
+        <div class="form-group" style="margin-bottom:0">
+          <label>⏱ Время готовки</label>
+          <input type="text" id="f-time" placeholder="30 мин">
+        </div>
+        <div class="form-group" style="margin-bottom:0">
+          <label>🍽 Порций</label>
+          <input type="number" id="f-servings" placeholder="2" min="1">
+        </div>
+      </div>
+
+      <div class="form-group" style="margin-top:18px">
+        <label>Короткое описание</label>
+        <textarea id="f-desc" rows="2" placeholder="Пару слов о блюде..."></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Ингредиенты</label>
+        <div class="ingredients-list" id="ingredients-list"></div>
+        <button class="btn-add-ingredient" onclick="addIngredient()">+ Добавить ингредиент</button>
+      </div>
+
+      <div class="form-group">
+        <label>Шаги приготовления</label>
+        <div class="steps-list" id="steps-list"></div>
+        <button class="btn-add-ingredient" onclick="addStep()">+ Добавить шаг</button>
+      </div>
+
+      <input type="hidden" id="f-id">
+      <button class="btn-submit" onclick="saveRecipe()">💾 Сохранить рецепт</button>
+      <button class="btn-cancel" onclick="cancelForm()">Отмена</button>
+    </div>
+  </div>
+</main>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal" onclick="closeModal(event)">
+  <div class="modal" id="modal-content"></div>
+</div>
+
+<button class="fab" onclick="showPage('add')" id="fab" title="Добавить рецепт">+</button>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let recipes = JSON.parse(localStorage.getItem('pp_recipes') || '[]');
+let currentFilter = '';
+let editId = null;
+
+function save() {
+  localStorage.setItem('pp_recipes', JSON.stringify(recipes));
+}
+
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + name).classList.add('active');
+  document.querySelector(`nav button:nth-child(${name==='recipes'?1:name==='favorites'?2:3})`).classList.add('active');
+  document.getElementById('fab').style.display = name === 'add' ? 'none' : 'flex';
+  if (name === 'recipes') renderRecipes();
+  if (name === 'favorites') renderFavorites();
+  if (name === 'add' && !editId) resetForm();
+}
+
+function setFilter(btn, cat) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentFilter = cat;
+  renderRecipes();
+}
+
+function renderRecipes() {
+  const q = document.getElementById('search-input').value.toLowerCase();
+  let list = recipes.filter(r => {
+    const matchQ = !q || r.name.toLowerCase().includes(q) || (r.desc||'').toLowerCase().includes(q);
+    const matchCat = !currentFilter || r.category === currentFilter;
+    return matchQ && matchCat;
+  });
+
+  const grid = document.getElementById('recipes-grid');
+  if (!list.length) {
+    grid.innerHTML = `<div class="empty-state"><div class="big-emoji">🌸</div><h3>Рецептов пока нет</h3><p>Нажми <b>+</b> чтобы добавить первый рецепт</p></div>`;
+    return;
+  }
+  grid.innerHTML = list.map(r => cardHTML(r)).join('');
+}
+
+function renderFavorites() {
+  const total = recipes.length;
+  const favs = recipes.filter(r => r.fav);
+  const cats = [...new Set(recipes.map(r => r.category))].length;
+
+  document.getElementById('stats-row').innerHTML = `
+    <div class="stat-card"><div class="num">${total}</div><div class="label">Всего рецептов</div></div>
+    <div class="stat-card"><div class="num">${favs.length}</div><div class="label">Избранных</div></div>
+    <div class="stat-card"><div class="num">${cats}</div><div class="label">Категорий</div></div>
+  `;
+
+  const grid = document.getElementById('fav-grid');
+  if (!favs.length) {
+    grid.innerHTML = `<div class="empty-state"><div class="big-emoji">⭐</div><h3>Избранное пусто</h3><p>Нажми ⭐ на рецепте, чтобы добавить в избранное</p></div>`;
+    return;
+  }
+  grid.innerHTML = favs.map(r => cardHTML(r)).join('');
+}
+
+function cardHTML(r) {
+  const catClass = 'cat-' + (r.category||'другое').toLowerCase();
+  return `
+  <div class="recipe-card" onclick="openRecipe('${r.id}')">
+    <div class="card-header">
+      <div class="card-emoji">${r.emoji||'🥗'}</div>
+      <div class="card-info">
+        <div class="card-title">${r.name}</div>
+        <span class="card-category ${catClass}">${r.category||'Другое'}</span>
+      </div>
+    </div>
+    ${r.desc ? `<div class="card-desc">${r.desc}</div>` : ''}
+    <div class="card-meta">
+      ${r.time ? `<span>⏱ ${r.time}</span>` : ''}
+      ${r.calories ? `<span>🔥 ${r.calories} ккал</span>` : ''}
+      ${r.servings ? `<span>🍽 ${r.servings} порц.</span>` : ''}
+      ${r.ingredients?.length ? `<span>📝 ${r.ingredients.length} ингр.</span>` : ''}
+    </div>
+    <div class="card-actions" onclick="event.stopPropagation()">
+      <button class="btn-icon btn-fav ${r.fav?'active':''}" onclick="toggleFav('${r.id}')" title="Избранное">⭐</button>
+      <button class="btn-icon btn-edit" onclick="editRecipe('${r.id}')" title="Редактировать">✏️</button>
+      <button class="btn-icon btn-delete" onclick="deleteRecipe('${r.id}')" title="Удалить">🗑️</button>
+    </div>
+  </div>`;
+}
+
+function openRecipe(id) {
+  const r = recipes.find(x => x.id === id);
+  if (!r) return;
+  const catClass = 'cat-' + (r.category||'другое').toLowerCase();
+
+  let ingredientsHTML = '';
+  if (r.ingredients?.length) {
+    ingredientsHTML = `
+    <div class="modal-section">
+      <h3>Ингредиенты</h3>
+      <div>${r.ingredients.map(i => `<span class="ingredient-chip">${i.name}${i.amount ? `<span class="amount">— ${i.amount}</span>` : ''}</span>`).join('')}</div>
+    </div>`;
+  }
+
+  let stepsHTML = '';
+  if (r.steps?.length) {
+    stepsHTML = `
+    <div class="modal-section">
+      <h3>Приготовление</h3>
+      ${r.steps.map((s,i) => `<div class="step-item"><div class="num">${i+1}</div><p>${s}</p></div>`).join('')}
+    </div>`;
+  }
+
+  document.getElementById('modal-content').innerHTML = `
+    <div class="modal-header">
+      <span class="modal-emoji">${r.emoji||'🥗'}</span>
+      <div>
+        <div class="modal-title">${r.name}</div>
+        <span class="card-category ${catClass}">${r.category||'Другое'}</span>
+      </div>
+      <button class="modal-close" onclick="closeModalBtn()">✕</button>
+    </div>
+    ${r.desc ? `<p style="color:var(--text-light);font-size:0.9rem;margin-bottom:20px;line-height:1.6">${r.desc}</p>` : ''}
+    <div class="modal-meta">
+      ${r.time ? `<div class="meta-item">⏱ <span>${r.time}</span></div>` : ''}
+      ${r.calories ? `<div class="meta-item">🔥 <span>${r.calories} ккал</span></div>` : ''}
+      ${r.servings ? `<div class="meta-item">🍽 <span>${r.servings} порц.</span></div>` : ''}
+    </div>
+    ${ingredientsHTML}
+    ${stepsHTML}
+  `;
+  document.getElementById('modal').classList.add('open');
+}
+
+function closeModal(e) {
+  if (e.target === document.getElementById('modal')) closeModalBtn();
+}
+function closeModalBtn() {
+  document.getElementById('modal').classList.remove('open');
+}
+
+function toggleFav(id) {
+  const r = recipes.find(x => x.id === id);
+  if (r) { r.fav = !r.fav; save(); renderRecipes(); renderFavorites(); showToast(r.fav ? '⭐ Добавлено в избранное' : 'Убрано из избранного'); }
+}
+
+function deleteRecipe(id) {
+  if (!confirm('Удалить рецепт?')) return;
+  recipes = recipes.filter(x => x.id !== id);
+  save(); renderRecipes(); renderFavorites();
+  showToast('🗑️ Рецепт удалён');
+}
+
+function editRecipe(id) {
+  const r = recipes.find(x => x.id === id);
+  if (!r) return;
+  editId = id;
+  showPage('add');
+  document.getElementById('form-title').textContent = '✏️ Редактировать рецепт';
+  document.getElementById('f-id').value = id;
+  document.getElementById('f-name').value = r.name || '';
+  document.getElementById('f-category').value = r.category || 'Завтрак';
+  document.getElementById('f-calories').value = r.calories || '';
+  document.getElementById('f-time').value = r.time || '';
+  document.getElementById('f-servings').value = r.servings || '';
+  document.getElementById('f-desc').value = r.desc || '';
+
+  // emoji
+  document.querySelectorAll('.emoji-option').forEach(e => {
+    e.classList.toggle('selected', e.textContent === r.emoji);
+  });
+
+  // ingredients
+  document.getElementById('ingredients-list').innerHTML = '';
+  (r.ingredients||[]).forEach(i => addIngredient(i.name, i.amount));
+
+  // steps
+  document.getElementById('steps-list').innerHTML = '';
+  (r.steps||[]).forEach(s => addStep(s));
+}
+
+function cancelForm() {
+  editId = null;
+  showPage('recipes');
+}
+
+function resetForm() {
+  editId = null;
+  document.getElementById('form-title').textContent = '✨ Новый рецепт';
+  document.getElementById('f-id').value = '';
+  document.getElementById('f-name').value = '';
+  document.getElementById('f-category').value = 'Завтрак';
+  document.getElementById('f-calories').value = '';
+  document.getElementById('f-time').value = '';
+  document.getElementById('f-servings').value = '';
+  document.getElementById('f-desc').value = '';
+  document.querySelectorAll('.emoji-option').forEach((e,i) => e.classList.toggle('selected', i===0));
+  document.getElementById('ingredients-list').innerHTML = '';
+  document.getElementById('steps-list').innerHTML = '';
+  addIngredient(); addIngredient(); addStep(); addStep();
+}
+
+function selectEmoji(el) {
+  document.querySelectorAll('.emoji-option').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function addIngredient(name='', amount='') {
+  const div = document.createElement('div');
+  div.className = 'ingredient-row';
+  div.innerHTML = `
+    <input type="text" placeholder="Название (напр. Куриная грудка)" value="${name}" class="ing-name">
+    <input type="text" placeholder="Кол-во" value="${amount}" class="amount-input ing-amount">
+    <button class="btn-remove" onclick="this.parentElement.remove()">×</button>
+  `;
+  document.getElementById('ingredients-list').appendChild(div);
+}
+
+function addStep(text='') {
+  const list = document.getElementById('steps-list');
+  const num = list.children.length + 1;
+  const div = document.createElement('div');
+  div.className = 'step-row';
+  div.innerHTML = `
+    <div class="step-number">${num}</div>
+    <textarea placeholder="Опиши шаг приготовления...">${text}</textarea>
+    <button class="btn-remove" onclick="this.parentElement.remove(); updateStepNumbers()">×</button>
+  `;
+  list.appendChild(div);
+}
+
+function updateStepNumbers() {
+  document.querySelectorAll('.step-number').forEach((el, i) => el.textContent = i + 1);
+}
+
+function saveRecipe() {
+  const name = document.getElementById('f-name').value.trim();
+  if (!name) { showToast('⚠️ Введи название рецепта'); return; }
+
+  const emoji = document.querySelector('.emoji-option.selected')?.textContent || '🥗';
+  const ingredients = [...document.querySelectorAll('.ingredient-row')].map(row => ({
+    name: row.querySelector('.ing-name').value.trim(),
+    amount: row.querySelector('.ing-amount').value.trim()
+  })).filter(i => i.name);
+
+  const steps = [...document.querySelectorAll('.step-row textarea')].map(t => t.value.trim()).filter(Boolean);
+
+  const id = editId || Date.now().toString();
+  const existing = editId ? recipes.find(x => x.id === editId) : null;
+
+  const recipe = {
+    id,
+    emoji,
+    name,
+    category: document.getElementById('f-category').value,
+    calories: document.getElementById('f-calories').value,
+    time: document.getElementById('f-time').value.trim(),
+    servings: document.getElementById('f-servings').value,
+    desc: document.getElementById('f-desc').value.trim(),
+    ingredients,
+    steps,
+    fav: existing?.fav || false,
+    createdAt: existing?.createdAt || Date.now()
+  };
+
+  if (editId) {
+    recipes = recipes.map(r => r.id === editId ? recipe : r);
+  } else {
+    recipes.push(recipe);
+  }
+
+  save();
+  editId = null;
+  showToast(editId ? '✅ Рецепт обновлён' : '✅ Рецепт сохранён!');
+  showPage('recipes');
+}
+
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2500);
+}
+
+// init
+resetForm();
+renderRecipes();
+</script>
+</body>
+</html>
